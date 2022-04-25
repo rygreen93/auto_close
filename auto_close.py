@@ -32,9 +32,9 @@ while True:
             value = ( float(p['data']['position_value']) + float(p['data']['unrealised_pnl']) ) * float(p['data']['entry_price']) / float(p['data']['position_value']) * float(p['data']['size'])
             #Retrieve current position value based on current Profit.
 
-            #get Unrealized P%L considering leverage as well.
+            #get Unrealized P%L without leverage
             #This is faster than ByBit frontend, so you will may experience some small differences.
-            pl = (value-float(p['data']['position_value'])) / float(p['data']['position_value']) * 100 * float(p['data']['leverage'])
+            pl = (value-float(p['data']['position_value'])) / float(p['data']['position_value']) * 100
             if float(p['data']['unrealised_pnl']) > 0:
                 if p['data']['side'] == 'Buy':
                     print(f"{Fore.BLUE}{p['data']['symbol']}    {Fore.GREEN}BUY  {Fore.WHITE}DD: {Fore.GREEN}{round(pl,2)}%   {Fore.WHITE}Profit: {Fore.GREEN}{p['data']['unrealised_pnl']}")
