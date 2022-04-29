@@ -3,7 +3,6 @@ import json
 import pprint
 from pybit import usdt_perpetual
 import os
-from datetime import datetime
 from colorama import Fore, Style
 
 def clearConsole():
@@ -22,23 +21,22 @@ session = usdt_perpetual.HTTP(
 )
 
 drawdown = 5
-log_file = str(datetime.now().strftime('%m/%d/%Y, %H:%M:%S'))
 
 while True:
-    try:
-        positions = session.my_position()
-        clearConsole()
-        print(f'{Fore.WHITE}Open positions:')
-        for p in positions['result']:
+    positions = session.my_position()
+    clearConsole()
+    print(f'{Fore.WHITE}Open positions:')
+    for p in positions['result']:
+        try:
             if float(p['data']['size']) > 0 or float(p['data']['size']) < 0:
                 #(4006.33-7.32)*40468/4006.33*0.099
                 value = ( float(p['data']['position_value']) + float(p['data']['unrealised_pnl']) ) * float(p['data']['entry_price']) / float(p['data']['position_value']) * float(p['data']['size'])
                 #Retrieve current position value based on current Profit.
 
-                #get Unrealized P%L excluding leverage
+                #get Unrealized P%L 
                 #This is faster than ByBit frontend, so you will may experience some small differences.
                 pl = (value-float(p['data']['position_value'])) / float(p['data']['position_value']) * 100
-                    
+                
                 if float(p['data']['unrealised_pnl']) > 0:
                     if p['data']['side'] == 'Buy':
                         print(f"{Fore.BLUE}{p['data']['symbol']}    {Fore.GREEN}BUY     {Fore.WHITE}DD: {Fore.GREEN}{round(pl,2)}%    {Fore.WHITE}Profit: {Fore.GREEN}{p['data']['unrealised_pnl']}")
@@ -49,12 +47,9 @@ while True:
                         print(f"{Fore.BLUE}{p['data']['symbol']}    {Fore.GREEN}BUY     {Fore.WHITE}DD: {Fore.RED}{round(pl,2)}%    {Fore.WHITE}Profit: {Fore.RED}{p['data']['unrealised_pnl']}")
                     else:
                         print(f"{Fore.BLUE}{p['data']['symbol']}    {Fore.RED}SELL    {Fore.WHITE}DD: {Fore.RED}{round(pl,2)}%    {Fore.WHITE}Profit: {Fore.RED}{p['data']['unrealised_pnl']}")
-                    
+                
                 if pl < drawdown*-1:
                     print('Close position')
-                    log = open(f'{log_file}.txt', 'a')
-                    log.write(f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {p['data']['symbol']} {p['data']['side']} {round(pl,2)} {p['data']['unrealised_pnl']}")
-                    log.close()
                     if p['data']['side'] == 'Buy':
                         session.place_active_order(
                             side="Sell",
@@ -75,11 +70,8 @@ while True:
                             reduce_only=True, 
                             close_on_trigger=True
                         )
-    except Exception as e:
-        print(f'Something went wrong {e}')
-        print('WAITING 5 SECONDS...')
-        time.sleep(5)
-    
-    time.sleep(2)
+        except Exception as e:
+            print(f'Something went wrong {e}')
+    time.sleep(1)
 
 
